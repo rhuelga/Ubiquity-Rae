@@ -2,20 +2,18 @@
 CmdUtils.CreateCommand({
     names: ["rae"],
     icon: "http://www.rae.es/favicon.ico",
-    description: "Look for rae definition.",
-    help: "How to use your command.",
+    description: "Busca la definición de la palabra indicada en el RAE.",
+    help: "rae [palabra a buscar].",
     author: {name: "Roberto Huelga", email: "rhuelga@gmail.com"},
     license: "GPL",
     homepage: "http://labs.mozilla.com/",
     arguments: [{role: 'object', nountype: noun_arb_text}],
     preview: function preview(pblock, args) {
-	pblock.innerHTML = "This will show until the AJAX request returns";
+	pblock.innerHTML = "Buscando en el diccionario...";
 	CmdUtils.previewGet(pblock, "http://buscon.rae.es/draeI/SrvltGUIBusUsual?LEMA=" + args.object.text +"&origen=RAE&TIPO_BUS=3", function (htm) {
-	    // $(html).find('a').click(function (event){
-	    // 	$(this).attr('href', "www.google.com");
-	    // });
             pblock.innerHTML = htm;
-	})
+	    $(pblock).find('a').attr( "href", function(ar) { return "http://buscon.rae.es/draeI/" + $(this).attr("href") });
+	});
     },
     execute: function execute(args) {
 	var search_string = args.object.text;
@@ -31,11 +29,11 @@ CmdUtils.CreateCommand({
 CmdUtils.CreateCommand({
     names: ["conjugar"],
     icon: "http://www.rae.es/favicon.ico",
-    description: "Look for rae definition.",
-    help: "How to use your command.",
+    description: "Busca en el RAE la conjugacion del verbo escrito.",
+    help: "conjugar [verbo a conjugar].",
     author: {name: "Roberto Huelga", email: "rhuelga@gmail.com"},
     license: "GPL",
-    homepage: "http://labs.mozilla.com/",
+    homepage: "http://marssong.blogspot.com/",
     arguments: [{role: 'object', nountype: noun_arb_text}],
 
     _verbUrl: function rae__verbUrl( verb, callback_ok, callback_not_found ) {
@@ -45,7 +43,7 @@ CmdUtils.CreateCommand({
 		callback_ok( "http://buscon.rae.es/draeI/" + verb_addr );
 	    } else {
 		if( callback_not_found ) {
-		    callback_not_found();
+		    callback_not_found( data );
 		}
 	    }
 	})
@@ -53,14 +51,19 @@ CmdUtils.CreateCommand({
     
     previewDelay: 500,
     preview: function preview(pblock, args) {
-	pblock.innerHTML = "Buscando en el diccionario.";
+	pblock.innerHTML = "Buscando en el diccionario...";
 	this._verbUrl( args.object.text,
 		       function (url) {
 			   CmdUtils.previewGet(pblock, url, function (htm) {
 			       pblock.innerHTML = htm;
+			       $(pblock).find('a').attr( "href", function(ar) {
+				   return "http://buscon.rae.es/draeI/" + $(this).attr("href")
+			       });
 			   })},
-		       function () {
-			   pblock.innerHTML = "Verbo '" + args.object.text + "' no encontrado.";
+		       function (data) {
+			   pblock.innerHTML = "Verbo '" + args.object.text + "' no encontrado. <hr/><div id=\"rae_data\">" + data +"</div>";
+			   $(pblock).find('a').attr( "href", function(ar) {
+			       return "http://buscon.rae.es/draeI/" + $(this).attr("href") }); 
 		       });
     },
     execute: function execute(args) {
